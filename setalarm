@@ -1,0 +1,48 @@
+#!/usr/bin/bash
+
+print_help() {
+	cat <<HELP
+Runs the given command at the specified time
+Usage: $0 when command...
+
+when: any string that UNIX 'date' accepts
+command...: the command to be run at that time
+
+Example:
+$0 '3 PM' echo "School's over"
+# Note: If it's already past 3 PM, then the command will execute immediately.
+
+See also the 'at' utility.
+HELP
+}
+
+# Need to specify the time and the command to run
+if [ $# -lt 2 ]; then
+	print_help
+	exit 255
+fi
+
+STR="date --date '"$1"'"
+ALARM_HUMAN_TIME=`echo $STR | sh`
+
+# When to run the command
+STR="date +%s --date '"$1"'"
+ALARMTIME=`echo $STR | sh`
+if [ $? -ne 0 ]; then
+	exit 1 # Bad date format
+fi
+shift 1
+
+# Find out how long to pause
+TIMENOW=`date +%s`
+PAUSE=$( echo "$ALARMTIME - $TIMENOW" | bc )
+
+# Already due. Act immediately.
+if [ $PAUSE -le 0 ]; then
+	$@
+else
+	echo "Alarm set for $ALARM_HUMAN_TIME"
+	# Sleep and run in background
+	( sleep $PAUSE ; $@ ) &
+fi
+

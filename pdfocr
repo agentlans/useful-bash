@@ -1,0 +1,46 @@
+#!/usr/bin/bash
+
+print_help() {
+	cat <<HELP
+Converts a PDF file to text by optical character recognition (OCR).
+Usage: $0 pdf_file
+
+Output filename is the same as the input PDF filename but with a .txt extension.
+
+Why not pdf2txt?
+- PDF file can consist of scanned images, not text
+- PDF may have page layouts that pdf2txt can't handle
+HELP
+}
+
+if [ $# -ne 1 ]; then
+	print_help
+	exit 1
+fi
+
+# Input and output files
+PDF_FILE=$1
+OUT_FILE=${PDF_FILE%.pdf}.txt
+
+# Make sure we don't overwrite anything important
+if [ -f "$OUT_FILE" ]; then
+	echo "$OUT_FILE already exists."
+	exit 1
+fi
+
+# Convert the pages to images
+IMG_DIR=`mktemp -d`
+`dirname $0`/pdftoimages $PDF_FILE $IMG_DIR -r 300
+
+# Empty file
+printf "" > $OUT_FILE
+
+# Sort files by numeric order then do OCR
+for IMG_FILE in `ls -d -1v $IMG_DIR/*`; do
+	echo "tesseract $IMG_FILE - >> $OUT_FILE"
+	tesseract $IMG_FILE - >> $OUT_FILE
+done
+
+# Delete temporary directory
+rm -r $IMG_DIR
+

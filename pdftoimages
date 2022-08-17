@@ -1,0 +1,52 @@
+#!/usr/bin/bash
+
+print_help() {
+	cat <<HELP
+Converts pages from a PDF to PNG images.
+Usage: $0 input.pdf out_dir [-f first_page] [-l last_page] [-r resolution=150]
+
+input.pdf: input PDF file
+out_dir: output directory to put the images
+first_page, last_page: page numbers to extract from the PDF file (inclusive)
+resolution: resolution of output images (dots per inch)
+HELP
+}
+
+if [[ $# -lt 2 ]]; then
+	print_help
+	exit 1
+fi
+
+INPUT=$1
+OUTPUT=$2
+
+FIRST_PAGE=0
+LAST_PAGE=0
+
+RESOLUTION=150 # dpi
+
+OPTIND=3
+while getopts 'f:l:r:' OPTION; do
+case $OPTION in
+	f) FIRST_PAGE=$OPTARG ;;
+	l) LAST_PAGE=$OPTARG ;;
+	r) RESOLUTION=$OPTARG ;;
+	?) print_help; exit 1 ;;
+esac
+done
+
+# Flags for the pages
+FP=""
+LP=""
+if [ $FIRST_PAGE -ne 0 ]; then
+	FP="-f $FIRST_PAGE"
+fi
+if [ $LAST_PAGE -ne 0 ]; then
+	LP="-l $LAST_PAGE"
+fi
+
+# Call the converter
+# See https://askubuntu.com/questions/50170/how-to-convert-pdf-to-image
+echo "pdftoppm $INPUT $OUTPUT/page -png $FP $LP -r $RESOLUTION -progress"
+pdftoppm $INPUT $OUTPUT/page -png $FP $LP -r $RESOLUTION -progress
+

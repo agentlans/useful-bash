@@ -1,0 +1,43 @@
+#!/usr/bin/bash
+
+print_help() {
+	cat <<HELP
+Tests whether a directory exists and is empty.
+Usage: $0 dir_name
+
+dir_name: path to the directory
+
+Returns
+0 if dir_name doesn't exist
+1 if exists and empty
+2 if exists and not empty
+255 if exists but can't access the directory
+254 if the script is called with the wrong number of arguments
+HELP
+}
+
+if [ $# -ne 1 ]; then
+	print_help
+	exit 254
+fi
+
+DIR=$1
+if [ -d $DIR ]; then
+	# Directory exists
+	ls $DIR > /dev/null
+	if [ $? -ne 0 ]; then
+		exit 255 # Problem accessing
+	fi
+	# See its contents
+	if [ "$(ls -A $DIR)" ]; then
+		# Not empty
+		exit 2
+	else
+		# Empty
+		exit 1
+	fi
+else
+	# Directory doesn't exist
+	exit 0
+fi
+

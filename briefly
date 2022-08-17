@@ -1,0 +1,41 @@
+#!/usr/bin/bash
+
+print_help() {
+	cat <<HELP
+Briefly runs a command then kills it.
+Usage: $0 [-t pause] command...
+
+pause: number of seconds to run the command (default 5)
+command: the command and its parameters as if it were on the command line
+
+Example:
+# To show a picture for 3 seconds
+$0 -t 3 eog PeekABoo.jpg
+HELP
+}
+
+PAUSE=5 # Default pause
+while getopts "t:" OPT; do
+	case $OPT in
+	t) PAUSE=$OPTARG ; shift 2 ;;
+	?) print_help ; exit 255 ;;
+	esac
+done
+
+# If no command given, print help message
+if [ $# -eq 0 ]; then
+	print_help
+	exit 255
+fi
+
+# Run the provided command in the background
+$@ &
+# Get its return code and PID
+ERR=$?
+PROC=$!
+# Sleep a while then end the background process
+sleep $PAUSE
+kill $PROC
+
+# Return the command's return code
+exit $ERR
