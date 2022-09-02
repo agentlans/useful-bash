@@ -1,0 +1,12 @@
+#!/usr/bin/bash
+
+if [ $# -ne 2 ]; then
+	echo "Prints the list of the n largest files in the directory."
+	echo "Usage: $0 [directory] [n]"
+	echo ""
+	echo "Output format: size in megabytes, filename"
+	exit 1
+fi
+
+find $1 -type f -print0 | xargs -0 du --block=1M | sort -k1nr | head -n $2
+
