@@ -1,10 +1,16 @@
 from bs4 import BeautifulSoup
 import sys
+import requests
 
 # Prints hyperlinks in the HTML files
 def ahref(html_file, print_filename=False):
-    with open(html_file) as f:
-        html_doc = f.read()
+    try:
+        with open(html_file) as f:
+            html_doc = f.read()
+    except:
+        # Treat it like an URL
+        r = requests.get(html_file)
+        html_doc = r.text
 
     soup = BeautifulSoup(html_doc, 'html.parser')
 
