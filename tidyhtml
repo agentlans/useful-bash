@@ -1,0 +1,6 @@
+#!/usr/bin/bash
+
+for FILE in "$@"
+do
+	tidy -asxml --output-xml yes --force-output yes --output-file "${FILE%.html}.xml" --quote-nbsp no $FILE 
+done
